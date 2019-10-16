@@ -23,7 +23,7 @@ func NewHandler(d *gorm.DB) *Handler {
 }
 
 func (h *Handler) MainPage(c echo.Context) error {
-	return c.HTML(http.StatusOK, `<html dir="rtl"><body><p>`+model.MainPageResponse+`</p></body></html>`)
+	return c.String(http.StatusOK, model.MainPageResponse)
 }
 
 // in this step user must send a GET request to /param with query params "sid" and "name"
@@ -40,7 +40,9 @@ func (h *Handler) HandleQueryParam(c echo.Context) error {
 		if s.Sid != 0 {
 			// giving out 1/4 of the key
 			h.db.Model(&s).Update("key", s.FinalKey[:len(s.FinalKey)/4])
-			return c.HTML(http.StatusOK, `<html dir="rtl"><body>Save this text somewhere : `+s.FinalKey[:15]+`<p>`+model.SuccessQPMessage(name, "")+`</p></body></html>`)
+			return c.String(http.StatusOK, `Save this text somewhere : `+s.FinalKey[:len(s.FinalKey)/4]+`
+
+`+model.SuccessQPMessage(name, client))
 		} else {
 			return c.String(http.StatusBadRequest, model.FailedQueryParam)
 		}
@@ -58,13 +60,13 @@ func (h *Handler) HandleGET(c echo.Context) error {
 		s := model.Student{}
 		h.db.Model(&s).Where("sid = ?", num).First(&s)
 		if s.Sid != 0 {
-			return c.HTML(http.StatusOK, model.GreetingGetMessage(s.FirstName))
+			return c.String(http.StatusOK, model.GreetingGetMessage(s.FirstName))
 		} else {
 			//Handle if user is not defined
-			return c.HTML(http.StatusBadRequest, `<html dir="rtl"><body><p>`+model.FailedGetMessage+`</p></body></html>`)
+			return c.String(http.StatusBadRequest, model.FailedGetMessage)
 		}
 	} else {
-		return c.HTML(http.StatusBadRequest, `<html dir="rtl"><body><p>`+model.FailedGetMessage+`</p></body></html>`)
+		return c.String(http.StatusBadRequest, model.FailedGetMessage)
 	}
 }
 
@@ -74,7 +76,7 @@ func (h *Handler) HandlePOST(c echo.Context) error {
 	psswd := c.FormValue("password")
 	// checking if posted data are valid
 	if _, err := strconv.Atoi(sid); err != nil || len(sid) != 7 || psswd == "" {
-		return c.HTML(http.StatusBadRequest, `<html dir="rtl"><body><p>`+model.FailedPassword+`</p></body></html>`)
+		return c.String(http.StatusBadRequest, model.FailedPassword)
 	}
 	s := model.Student{}
 	h.db.Model(&s).Where("sid = ?", sid).First(&s)
@@ -90,7 +92,9 @@ func (h *Handler) HandlePOST(c echo.Context) error {
 		token := base64.URLEncoding.EncodeToString([]byte(sid + "*"))
 		c.Response().Header().Set("token", token)
 		// giving out 2/4 of the key
-		return c.String(http.StatusOK, "It might be of use someday, Save it. "+s.FinalKey[len(s.FinalKey)/4:len(s.FinalKey)/2]+"\n\n"+model.SuccessPOST)
+		return c.String(http.StatusOK, "It might be of use someday, Save it. "+s.FinalKey[len(s.FinalKey)/4:len(s.FinalKey)/2]+`
+
+`+model.SuccessPOST)
 	} else {
 		// student not found
 		return c.String(http.StatusBadRequest, model.FailedQueryParam)
@@ -145,7 +149,9 @@ func (h *Handler) HeaderHandler(c echo.Context) error {
 		h.db.Where("sid = ?", sid).First(&s)
 		h.db.Model(&s).Update("key", s.FinalKey[:3*len(s.FinalKey)/4])
 		// giving out 3/4 of the key
-		return c.String(http.StatusOK, "Your final peace of shit... oh sorry, your final piece of code!!!: "+s.FinalKey[len(s.FinalKey)/2:3*len(s.FinalKey)/4]+"\n\n"+model.SuccessAuth)
+		return c.String(http.StatusOK, "Your final peace of shit... oh sorry, your final piece of code!!!: "+s.FinalKey[len(s.FinalKey)/2:3*len(s.FinalKey)/4]+`
+
+`+model.SuccessAuth)
 	} else {
 		return c.String(http.StatusBadRequest, "vala yeja ro fek konam eshtebah kardi. boro be eshtebahatet fekr kon")
 	}
@@ -165,7 +171,9 @@ func (h *Handler) DecryptKey(c echo.Context) error {
 			return c.String(http.StatusOK, msg)
 		} else {
 			// msg ye chiz valid nist. cherto perte...
-			return c.String(http.StatusBadRequest, "Aghaaaaaa. mano bikar gir Avordi ? midooni man chanta request ro bayad javab bedam ? bad to dari payam chert bara man mifresti man decode conam ? midooni har payami ke midi cheghadr vaght mano migire ?\nreAyat kon dige ghaaa")
+			return c.String(http.StatusBadRequest, `Aghaaaaaa. mano bikar gir Avordi ? midooni man chanta request ro bayad javab bedam ? bad to dari payam chert bara man mifresti man decode conam ? midooni har payami ke midi cheghadr vaght mano migire 
+
+reAyat kon dige ghaaa`)
 		}
 	} else {
 		return c.String(http.StatusBadRequest, "key't ghalate baradaram / khaharam. ye chizi labela chert o pertaye jashn behet goftimaaaa. key az beyne hamoonas. age hamchenan nemidooni. boro az bache haye anjoman bepors.")

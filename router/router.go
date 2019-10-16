@@ -19,15 +19,16 @@ func New() *echo.Echo {
 		log.Fatal(err)
 	}
 	h := handler.NewHandler(d)
-	e.GET("/", h.MainPage)
-	e.GET("/get", h.HandleGET)          //sid ro to header bede
-	e.GET("/param", h.HandleQueryParam) // sid va name ro ba query param bede
-	e.POST("/post", h.HandlePOST)       // sid va password ro besoorat form-data POST kone
+	g := e.Group("/api")
+	g.GET("/", h.MainPage)
+	g.GET("/get", h.HandleGET)          //sid ro to header bede
+	g.GET("/param", h.HandleQueryParam) // sid va name ro ba query param bede
+	g.POST("/post", h.HandlePOST)       // sid va password ro besoorat form-data POST kone
 	v := middleware.New(d)
-	g1 := e.Group("/private", v.ValidateHeader)
+	g1 := g.Group("/private", v.ValidateHeader)
 	g1.POST("", h.HeaderHandler)      // POST khali be /private ba header token ke to marhale POST migire
 	g1.GET("/cookie", h.CookieSetter) // GET be /private/Cookie ke dobare bayad token dashte bashe
 
-	e.POST("/decode", h.DecryptKey)
+	g.POST("/decode", h.DecryptKey)
 	return e
 }
