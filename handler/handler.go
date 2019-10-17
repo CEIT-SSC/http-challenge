@@ -8,7 +8,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/smf8/http-challange/model"
 	"github.com/smf8/http-challange/utils"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -101,28 +103,6 @@ func (h *Handler) HandlePOST(c echo.Context) error {
 	}
 }
 
-// handling GET request with key param. useless as there is already HandleQueryParam to handel query parameters
-func (h *Handler) KeyHandler(c echo.Context) error {
-	sid := c.Param("key")
-	if len(sid) != 5 {
-		return c.String(http.StatusBadRequest, "key ات نامعتبره برادر / خواهر")
-	}
-	s := model.Student{}
-	h.db.Where("key LIKE ?", "%"+sid+"%").First(&s)
-	if s.Sid != 0 {
-		fmt.Println("Found User Hurray")
-		key := md5.Sum([]byte("GET" + strconv.Itoa(s.Sid)))
-		c.Response().Header().Set("CEIT-TOKEN", fmt.Sprintf("%x", key))
-		h.db.Model(&s).Update("key", s.KEY+fmt.Sprintf("%x-", key))
-		return c.String(http.StatusOK, `خب اینجا هم کارت به خوبی و درستی انجام شد. حالا وقتشه که یه چیز جدید یاد بگیری. Header ها :| تو این چیزی که من دارم بهت نشون میدم. علاوه بر این متن. یه چیز میزای دیگه ای هم هست که بهش میگن Response Header. از تو این برو یه گوگولی ای پیدا کن به دردت میخوره.
-
-گوگولیه رو که پیدا کردی. گوگولیه پارت دوم پس کدت هست. نگهش دار برا روز مبادا.
-راستی برای ادامه ماجرا. باید برای همه Request هایی که میفرستی هم Header بذاری. اگه علاقه داری تحقیق کن که Request Header ها چی ان. اگه هم علاقه نداری صرفا با Postman قسمت header یه هدر به اسم token و مقدار چیزی که اینجا پیدا کردی بفرست...`)
-	} else {
-		return c.String(http.StatusBadRequest, "یا میخوای سر منو کلاه بذاری و داری چرت و پرت میفرستی یا اینکه مرحله قبلی رو درست انجام ندادی. در هر صورت برو یه گوشه و به کار هات فکر کن")
-	}
-}
-
 // Cookie setter is the last step of the challenge which sends the final part of the key as a cookie to the client
 func (h *Handler) CookieSetter(c echo.Context) error {
 	if sid := c.Get("sid"); sid != nil {
@@ -167,6 +147,17 @@ func (h *Handler) DecryptKey(c echo.Context) error {
 			msg, err := utils.Decrypt([]byte(key), msg)
 			if err != nil {
 				return err
+			}
+
+			// saving winners to a file
+			f, err := os.OpenFile("winners.txt",
+				os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				log.Println(err)
+			}
+			defer f.Close()
+			if _, err := f.WriteString(fmt.Sprintf("%d - %s %s\n", s.Sid, s.FirstName, s.LastName)); err != nil {
+				log.Println(err)
 			}
 			return c.String(http.StatusOK, msg)
 		} else {

@@ -30,5 +30,23 @@ func New() *echo.Echo {
 	g1.GET("/cookie", h.CookieSetter) // GET be /private/Cookie ke dobare bayad token dashte bashe
 
 	g.POST("/decode", h.DecryptKey)
+
+	//// bad code is about to happen :(
+	//// checking all the winners
+	//users := make([]*model.Student, 0)
+	//d.Where("key = final_key").Find(&users)
+	//// saving winners to a file
+	//f, err := os.OpenFile("winners.txt",
+	//	os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//for _, s := range users {
+	//	if _, err := f.WriteString(fmt.Sprintf("%d - %s %s\n", s.Sid, s.FirstName, s.LastName)); err != nil {
+	//		fmt.Println(err)
+	//	}
+	//}
+	//defer f.Close()
+
 	return e
 }
