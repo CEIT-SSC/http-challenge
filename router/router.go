@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/labstack/echo/v4"
+	middleware2 "github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/smf8/http-challange/db"
 	"github.com/smf8/http-challange/handler"
@@ -19,8 +20,9 @@ func New() *echo.Echo {
 		log.Fatal(err)
 	}
 	h := handler.NewHandler(d)
+	e.Pre(middleware2.RemoveTrailingSlash())
 	g := e.Group("/api")
-	g.GET("/", h.MainPage)
+	g.GET("", h.MainPage)
 	g.GET("/get", h.HandleGET)          //sid ro to header bede
 	g.GET("/param", h.HandleQueryParam) // sid va name ro ba query param bede
 	g.POST("/post", h.HandlePOST)       // sid va password ro besoorat form-data POST kone
